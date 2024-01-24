@@ -1,0 +1,162 @@
+module BCD_Counter( clk_up , clk_down , reset , count ,state );
+    input clk_up,
+          clk_down,
+           reset;
+   output reg [5:0] count=6'b0;
+   output reg [2:0] state;
+   parameter      empty=3'b000,
+                  up=3'b001,
+                 down=3'b010,
+                 remain=3'b011,
+                 full=3'b100;
+             
+   initial 
+   begin
+     state<=empty;
+   end
+    always@( posedge clk_up or posedge reset or posedge clk_down)
+    begin
+      if(reset)
+        begin
+          state<=empty;
+          count<=6'b0;
+        end
+      else
+        begin
+          if(state==empty)
+            begin
+            if( clk_up &&  clk_down)
+                   begin
+                     state<=empty;
+                     count <= count;
+                   end
+            else if (clk_up)
+               begin
+                    state<=up;
+                   count<= count + 1'b1;
+                 end
+            else
+              state<=empty;
+            end
+        else if(state==up)
+            begin
+            if( clk_up &&  clk_down)
+                   begin
+                     state<=remain;
+                     count <= count;
+                   end
+             else if (clk_up)
+               begin
+                   if( count == 6'b110001)
+                     begin
+                       state<=full;
+                     count<=6'b110010;
+                      end
+                   else
+                     begin
+                       count<= count + 1'b1;
+                       state<=up;
+                     end
+                end
+              else
+                 begin
+                    if( count == 6'b000001)
+                      begin
+                        count<=6'b0;
+                        state<=empty;
+                      end
+                  
+                   else
+                     begin
+                       count<= count - 1'b1;
+                       state<=down;
+                     end
+                 end
+               end
+         else if(state==down)
+            begin
+            if( clk_up &&  clk_down)
+                   begin
+                     state<=remain;
+                     count <= count;
+                   end
+             else if (clk_up)
+               begin
+                       count<= count + 1'b1;
+                       state<=up;
+                end
+              else
+                 begin
+                    if( count == 6'b1)
+                      begin
+                        count<=6'b0;
+                        state<=empty;
+                      end
+                  
+                   else
+                     begin
+                       count<= count - 1'b1;
+                       state<=down;
+                     end
+                 end
+               end
+         else if(state==remain)
+            begin
+              if( clk_up &&  clk_down)
+                   begin
+                     state<=remain;
+                     count <= count;
+                   end
+            else if (clk_up)
+               begin
+                
+                       count<= count + 1'b1;
+                       state<=up;
+                end
+              else
+                 begin
+                       count<= count - 1'b1;
+                       state<=down;
+                 end
+               end
+          else if(state==full)
+            begin
+             
+              if( clk_down)
+                   begin
+                     state<=down;
+                     count <= count-1'b1;
+                   end
+           else
+                 begin
+                    state<=full;
+                   count<= count;
+                   
+                 end
+              
+            end
+        end
+    end        
+endmodule
+/*
+begin
+             if( clk_up &&  clk_down)
+                   begin
+                     count <= count;
+                   end
+          else if (clk_up)
+               begin
+                   if( count == 6'b110010)
+                     count<=6'b110010;
+                   else
+                   count<= count + 1'b1;
+                 end
+           else
+                 begin
+                    if( count == 6'b0)
+                     count<=6'b0;
+                   else
+                   count<= count - 1'b1;
+                   
+                 end
+end*/

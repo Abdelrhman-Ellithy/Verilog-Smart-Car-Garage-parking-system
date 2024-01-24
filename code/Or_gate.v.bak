@@ -1,0 +1,5 @@
+module Or_gate(a,b,y)l
+  input a,b;
+  output y;
+  assign y=a|b;
+endmodule 

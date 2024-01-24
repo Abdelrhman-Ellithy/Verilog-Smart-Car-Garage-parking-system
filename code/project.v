@@ -1,0 +1,75 @@
+module prject( Pb_up , Pb_down , reset , leds1 , leds2 , leds_flag ,/* slow_clk ,*/ 
+              Debounced_up , Debounced_down , state);
+  input reset , Pb_up ,Pb_down ;
+  output    [6:0]leds1; // The ones digit place
+  output    [6:0]leds2; // The tens digit place
+  output    [6:0]leds_flag ; // The empty or full place
+  output    [2:0]state;// return the state
+  output     Debounced_up ; // Debounced_push button_up
+  output     Debounced_down ; // Debounced_push button_down
+ // output      slow_clk ; // slowed_clock for buttons 
+  wire        [5:0] count ;
+  
+  wire       clk ;
+  clock_gen Clkg(clk);
+  
+  wire      slow_clk ;
+  clock_div div_clk( clk, reset, slow_clk );
+  
+   wire        Debounced_up  ;
+   FF Pb_up_ff( slow_clk , Pb_up , Debounced_up );
+   
+  wire       Debounced_down ;
+   FF Pb_down_ff( slow_clk , Pb_down , Debounced_down );
+
+  BCD_Counter bcd_cnt( Debounced_up , Debounced_down , reset, count, state) ;
+  wire [5:0] counts = count ;
+  wire [3:0] seg1 = count %10 ; // return The ones digit
+  wire [3:0] seg2 = count /10 ; // return The tens digit
+  wire [2:0] State= state ; // returtn the current state
+  Docoder_7_seg seg_1( seg1[3] , seg1[2] , seg1[1] , seg1[0] , leds1[0] , // The ones digit segment
+                         leds1[1] ,leds1[2] , leds1[3] ,leds1[4] ,leds1[5] , leds1[6] ) ;
+                         
+  Docoder_7_seg seg_2( seg2[3] , seg2[2] , seg2[1] , seg2[0] , leds2[0] , // The tens digit segment
+                         leds2[1] ,leds2[2] , leds2[3] ,leds2[4] ,leds2[5] , leds2[6] ) ;
+  flag_7_seg flag_seg (counts[5],counts[4],counts[3],counts[2],counts[1],counts[0],
+                      leds_flag[0] , leds_flag[1] ,leds_flag[2] , leds_flag[3] ,
+                      leds_flag[4] ,leds_flag[5],leds_flag[6]) ;
+               // The flag segment
+endmodule   
+
+module prject_test;
+  reg reset ,
+   Pb_up ,
+   Pb_down ;
+   
+  wire   [6:0] leds_1 ;
+  wire   [6:0] leds_2 ;
+  wire   [6:0] leds_flagg ;
+ // wire      slow_clk ;
+  wire        Debounced_up  ;
+  wire       Debounced_down ;
+  wire    [2:0]state ;
+      initial 
+      begin
+        reset=1 ; #50;
+        reset =0;
+        Pb_up=1;
+        Pb_down=0;
+      end
+      always 
+      begin
+     #55  Pb_up <= ~Pb_up ;
+       end 
+        always 
+      begin
+     #9446 Pb_down <= ~Pb_down ;
+       end 
+ prject pj_test( Pb_up , Pb_down , reset , leds_1 , leds_2 , leds_flagg ,
+                  /*slow_clk ,*/ Debounced_up , Debounced_down , state ) ;
+                  
+                  
+endmodule
+//3210
+//1010
+  
